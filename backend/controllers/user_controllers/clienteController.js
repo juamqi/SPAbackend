@@ -125,7 +125,7 @@ exports.getClienteById = async (req, res) => {
     console.log('Ejecutando consulta a la base de datos...');
     
     const [results] = await pool.query(
-      'SELECT id_cliente, nombre, apellido, email, telefono, direccion FROM CLIENTE WHERE id_cliente = ?', 
+      'SELECT id_cliente, nombre, apellido, email, telefono, direccion FROM cliente WHERE id_cliente = ?', 
       [id_cliente]
     );
     
