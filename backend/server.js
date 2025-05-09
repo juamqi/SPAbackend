@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();
 //usuarios
 const clientesRoutes = require('./routes/user_routes/clientesRoutes.js');
 const turnosRoutes = require('./routes/user_routes/turnosRoutes.js');
@@ -11,8 +12,6 @@ const serviciosAdmRoutes = require('./routes/adm_routes/serviciosAdmRoutes.js');
 const profesionalesAdmRoutes = require('./routes/adm_routes/profesionalesRoutes.js'); // Nueva línea
 const categoriaAdmRoutes = require('./routes/adm_routes/categoriaAdmRoutes.js');
 const clienteRoutes = require('./routes/adm_routes/clienteAdmRoutes.js');
-
-require('dotenv').config();
 
 const app = express();
 app.use(cors());
