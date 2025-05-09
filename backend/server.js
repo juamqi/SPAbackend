@@ -29,6 +29,11 @@ app.use('/api/serviciosAdm', serviciosAdmRoutes); // Cambia la ruta según tu es
 app.use('/api/profesionalesAdm', profesionalesAdmRoutes); // Nueva línea
 app.use('/api/categoriasAdm', categoriaAdmRoutes);
 app.use('/api/clientesAdm', clienteRoutes);
+
+app.get('/', (req, res) => {
+  res.send('🚀 Backend funcionando correctamente');
+});
+
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`Servidor backend corriendo en http://localhost:${PORT}`);
