@@ -6,9 +6,9 @@ const getTurnosPorCliente = async (req, res) => {
   
   const query = `
     SELECT t.*, s.nombre AS nombre_servicio, p.nombre AS nombre_profesional, p.apellido AS profesional_apellido
-    FROM TURNO t
-    JOIN SERVICIO s ON t.id_servicio = s.id_servicio
-    JOIN PROFESIONAL p ON t.id_profesional = p.id_profesional
+    FROM turno t
+    JOIN servicio s ON t.id_servicio = s.id_servicio
+    JOIN profesional p ON t.id_profesional = p.id_profesional
     WHERE t.id_cliente = ? ORDER BY t.fecha_hora DESC
   `;
   
@@ -34,7 +34,7 @@ const crearTurno = async (req, res) => {
   try {
     // Verificar que no exista un turno en el mismo horario y con el mismo profesional
     const verificarDisponibilidadQuery = `
-      SELECT COUNT(*) as total FROM TURNO 
+      SELECT COUNT(*) as total FROM turno 
       WHERE id_profesional = ? 
       AND fecha_hora = ? 
       AND estado != 'Cancelado'
@@ -48,7 +48,7 @@ const crearTurno = async (req, res) => {
 
     // Si está disponible, crear el turno
     const query = `
-      INSERT INTO TURNO (id_cliente, id_servicio, id_profesional, fecha_hora, duracion_minutos, estado, comentarios)
+      INSERT INTO turno (id_cliente, id_servicio, id_profesional, fecha_hora, duracion_minutos, estado, comentarios)
       VALUES (?, ?, ?, ?, ?, 'Solicitado', ?)
     `;
 
@@ -68,9 +68,9 @@ const verificarDisponibilidad = async (req, res) => {
   }
   
   let query = `
-    SELECT t.id_turno, t.fecha_hora, t.id_profesional 
-    FROM TURNO t
-    WHERE DATE(t.fecha_hora) = ? 
+    SELECT t.id_turno, t.fecha_hora, t.id_profesional
+    FROM turno t
+    WHERE DATE(t.fecha_hora) = ?
     AND t.id_servicio = ?
     AND t.estado != 'Cancelado'
   `;
@@ -96,7 +96,7 @@ const cancelarTurno = async (req, res) => {
   const { id_turno } = req.params;
   
   const query = `
-    UPDATE TURNO SET estado = 'Cancelado' WHERE id_turno = ?
+    UPDATE turno SET estado = 'Cancelado' WHERE id_turno = ?
   `;
   
   try {
@@ -118,7 +118,7 @@ const reprogramarTurno = async (req, res) => {
 
   try {
     // Primero obtenemos el id_profesional del turno
-    const obtenerProfeQuery = `SELECT id_profesional FROM TURNO WHERE id_turno = ?`;
+    const obtenerProfeQuery = `SELECT id_profesional FROM turno WHERE id_turno = ?`;
     
     const [results] = await db.query(obtenerProfeQuery, [id_turno]);
     
@@ -130,7 +130,7 @@ const reprogramarTurno = async (req, res) => {
     
     // Verificar disponibilidad para la nueva fecha/hora
     const verificarDisponibilidadQuery = `
-      SELECT COUNT(*) as total FROM TURNO 
+      SELECT COUNT(*) as total FROM turno 
       WHERE id_profesional = ? 
       AND fecha_hora = ? 
       AND estado != 'Cancelado'
@@ -145,7 +145,7 @@ const reprogramarTurno = async (req, res) => {
     
     // Si está disponible, reprogramar el turno
     const query = `
-      UPDATE TURNO SET fecha_hora = ? WHERE id_turno = ? AND estado != 'Cancelado'
+      UPDATE turno SET fecha_hora = ? WHERE id_turno = ? AND estado != 'Cancelado'
     `;
 
     const [updateResult] = await db.query(query, [fecha_hora, id_turno]);
