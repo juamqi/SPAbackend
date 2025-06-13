@@ -95,10 +95,10 @@ const putProfesionalesPassword = async (req, res) =>{
   
   try {
     const querySelect =`
-      SELECT * FROM PROFESIONAL WHERE email = ?
+      SELECT * FROM profesional WHERE email = ?
     `
     const queryUpdate =`
-      UPDATE PROFESIONAL SET password = ? WHERE email = ?
+      UPDATE profesional SET password = ? WHERE email = ?
     `
       const [results] = await db.query(querySelect, [email]);
       
