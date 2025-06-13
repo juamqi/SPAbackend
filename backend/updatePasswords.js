@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 async function updatePasswords() {
   // Primero, obtenemos todos los clientes que no tienen la contraseña hasheada
-  db.query('SELECT id_cliente, password FROM CLIENTE WHERE password IS NOT NULL', async (err, results) => {
+  db.query('SELECT id_cliente, password FROM cliente WHERE password IS NOT NULL', async (err, results) => {
     if (err) {
       console.error('Error al obtener los clientes:', err);
       return;
@@ -25,7 +25,7 @@ async function updatePasswords() {
 
         // Actualizamos la contraseña en la base de datos
         db.query(
-          'UPDATE CLIENTE SET password = ? WHERE id_cliente = ?',
+          'UPDATE cliente SET password = ? WHERE id_cliente = ?',
           [hashedPassword, idCliente],
           (updateErr) => {
             if (updateErr) {

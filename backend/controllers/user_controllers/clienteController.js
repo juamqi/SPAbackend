@@ -15,7 +15,7 @@ exports.registerCliente = async (req, res) => {
 
   try {
     // Verificar si el email ya existe
-    const [emailResults] = await pool.query('SELECT id_cliente FROM CLIENTE WHERE email = ?', [email]);
+    const [emailResults] = await pool.query('SELECT id_cliente FROM cliente WHERE email = ?', [email]);
     
     if (emailResults.length > 0) {
       return res.status(400).json({ error: 'El correo electrónico ya está registrado' });
@@ -23,7 +23,7 @@ exports.registerCliente = async (req, res) => {
     
     // Si el email no existe, procedemos con el registro
     const hashedPassword = await bcrypt.hash(password, 10);
-    const query = `INSERT INTO CLIENTE (nombre, apellido, email, telefono, direccion, password)
+    const query = `INSERT INTO cliente (nombre, apellido, email, telefono, direccion, password)
                    VALUES (?, ?, ?, ?, ?, ?)`;
 
     await pool.query(query, [nombre, apellido, email, telefono, direccion, hashedPassword]);
@@ -44,7 +44,7 @@ exports.loginCliente = async (req, res) => {
 
   try {
     // Ya estás usando el método de promesas aquí, pero simplificamos
-    const [results] = await pool.query('SELECT * FROM CLIENTE WHERE email = ?', [email]);
+    const [results] = await pool.query('SELECT * FROM cliente WHERE email = ?', [email]);
     
     // Usuario no encontrado
     if (results.length === 0) {
@@ -87,7 +87,7 @@ exports.cambiarPasswordCliente = async (req, res) => {
   }
 
   try {
-    const [results] = await pool.query('SELECT * FROM CLIENTE WHERE email = ?', [email]);
+    const [results] = await pool.query('SELECT * FROM cliente WHERE email = ?', [email]);
     
     if (results.length === 0) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
@@ -101,7 +101,7 @@ exports.cambiarPasswordCliente = async (req, res) => {
     }
 
     const hashedNueva = await bcrypt.hash(passwordNueva, 10);
-    await pool.query('UPDATE CLIENTE SET password = ? WHERE email = ?', [hashedNueva, email]);
+    await pool.query('UPDATE cliente SET password = ? WHERE email = ?', [hashedNueva, email]);
     
     res.json({ message: 'Contraseña actualizada exitosamente' });
   } catch (error) {
@@ -125,7 +125,7 @@ exports.getClienteById = async (req, res) => {
     console.log('Ejecutando consulta a la base de datos...');
     
     const [results] = await pool.query(
-      'SELECT id_cliente, nombre, apellido, email, telefono, direccion FROM CLIENTE WHERE id_cliente = ?', 
+      'SELECT id_cliente, nombre, apellido, email, telefono, direccion FROM cliente WHERE id_cliente = ?', 
       [id_cliente]
     );
     
@@ -155,7 +155,7 @@ exports.actualizarCliente = async (req, res) => {
 
   try {
     // Primero verificamos que el cliente exista
-    const [checkResults] = await pool.query('SELECT id_cliente FROM CLIENTE WHERE id_cliente = ?', [id_cliente]);
+    const [checkResults] = await pool.query('SELECT id_cliente FROM cliente WHERE id_cliente = ?', [id_cliente]);
     
     if (checkResults.length === 0) {
       return res.status(404).json({ error: 'Cliente no encontrado' });
@@ -163,7 +163,7 @@ exports.actualizarCliente = async (req, res) => {
     
     // Si existe, procedemos con la actualización
     await pool.query(
-      'UPDATE CLIENTE SET nombre = ?, apellido = ?, email = ?, telefono = ?, direccion = ? WHERE id_cliente = ?',
+      'UPDATE cliente SET nombre = ?, apellido = ?, email = ?, telefono = ?, direccion = ? WHERE id_cliente = ?',
       [nombre, apellido, email, telefono, direccion, id_cliente]
     );
     
