@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt');
 
 exports.getAllClientes = async (req, res) => {
   try {
-    const [results] = await pool.query('SELECT id_cliente, nombre, apellido, email FROM CLIENTE WHERE estado = 1');
+    const [results] = await pool.query('SELECT id_cliente, nombre, apellido, email FROM cliente WHERE estado = 1');
     res.json(results);
   } catch (err) {
     return res.status(500).json({ error: err.message });
