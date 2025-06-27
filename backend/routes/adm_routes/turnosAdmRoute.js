@@ -14,6 +14,14 @@ router.get('/comentario/:idTurno', turnosAdmController.getComentarioTurno);
 router.put('/comentario/:idTurno', turnosAdmController.actualizarComentarioTurno);
 router.get('/comentarios/profesional/:idProfesional', turnosAdmController.getTurnosConComentariosPorProfesional);
 
+// NUEVAS RUTAS PARA MANEJO DE ESTADOS
+router.get('/todos', turnosAdmController.getTodosLosTurnos);
+router.get('/estado/:estado', turnosAdmController.getTurnosPorEstado);
+router.get('/profesional/:idProfesional/turnos', turnosAdmController.getTurnosPorProfesionalYEstado);
+router.put('/cambiar-estado/:idTurno', turnosAdmController.cambiarEstadoTurno);
+router.get('/estadisticas/estados', turnosAdmController.getEstadisticasEstados);
+router.get('/estados-disponibles', turnosAdmController.getEstadosDisponibles);
+
 // Nueva ruta para actualizar un turno
 router.put('/:id', turnosAdmController.actualizarTurno);
 router.use((req, res, next) => {

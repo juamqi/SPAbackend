@@ -213,6 +213,129 @@ const getTurnosConComentariosPorProfesional = async (req, res) => {
     }
 };
 
+// Obtener todos los turnos con todos los estados
+const getTodosLosTurnos = async (req, res) => {
+    try {
+        const turnos = await turnosAdmModel.getTodosLosTurnos();
+        res.status(200).json(turnos);
+    } catch (error) {
+        console.error('Error al obtener todos los turnos:', error);
+        res.status(500).json({ error: 'Error al obtener todos los turnos' });
+    }
+};
+
+// Obtener turnos por estado específico
+const getTurnosPorEstado = async (req, res) => {
+    try {
+        const { estado } = req.params;
+        
+        const estadosValidos = ['Solicitado', 'Confirmado', 'Cancelado', 'Realizado'];
+        if (!estadosValidos.includes(estado)) {
+            return res.status(400).json({ 
+                error: `Estado no válido. Estados válidos: ${estadosValidos.join(', ')}` 
+            });
+        }
+        
+        const turnos = await turnosAdmModel.getTurnosPorEstado(estado);
+        res.status(200).json(turnos);
+    } catch (error) {
+        console.error('Error al obtener turnos por estado:', error);
+        res.status(500).json({ error: 'Error al obtener turnos por estado' });
+    }
+};
+
+// Obtener turnos por profesional con filtro opcional de estado
+const getTurnosPorProfesionalYEstado = async (req, res) => {
+    try {
+        const { idProfesional } = req.params;
+        const { estado } = req.query; // Estado opcional como query parameter
+        
+        if (!idProfesional || isNaN(idProfesional)) {
+            return res.status(400).json({ error: 'ID de profesional inválido' });
+        }
+        
+        // Validar estado si se proporciona
+        if (estado) {
+            const estadosValidos = ['Solicitado', 'Confirmado', 'Cancelado', 'Realizado'];
+            if (!estadosValidos.includes(estado)) {
+                return res.status(400).json({ 
+                    error: `Estado no válido. Estados válidos: ${estadosValidos.join(', ')}` 
+                });
+            }
+        }
+        
+        const turnos = await turnosAdmModel.getTurnosPorProfesionalYEstado(idProfesional, estado);
+        res.status(200).json(turnos);
+    } catch (error) {
+        console.error('Error al obtener turnos por profesional y estado:', error);
+        res.status(500).json({ error: 'Error al obtener turnos por profesional y estado' });
+    }
+};
+
+// Cambiar estado de turno con comentario opcional
+const cambiarEstadoTurno = async (req, res) => {
+    try {
+        const { idTurno } = req.params;
+        const { nuevoEstado, comentario } = req.body;
+        
+        if (!idTurno || isNaN(idTurno)) {
+            return res.status(400).json({ error: 'ID de turno inválido' });
+        }
+        
+        if (!nuevoEstado) {
+            return res.status(400).json({ error: 'El nuevo estado es requerido' });
+        }
+        
+        const resultado = await turnosAdmModel.cambiarEstadoTurno(idTurno, nuevoEstado, comentario);
+        
+        res.status(200).json({
+            mensaje: 'Estado del turno actualizado correctamente',
+            turnoId: idTurno,
+            estadoAnterior: resultado.estadoAnterior,
+            nuevoEstado: resultado.nuevoEstado,
+            comentariosActualizados: resultado.comentariosActualizados
+        });
+    } catch (error) {
+        console.error('Error al cambiar estado del turno:', error);
+        res.status(500).json({ error: error.message || 'Error al cambiar estado del turno' });
+    }
+};
+
+// Obtener estadísticas de estados
+const getEstadisticasEstados = async (req, res) => {
+    try {
+        const { idProfesional } = req.query; // Opcional como query parameter
+        
+        // Validar ID de profesional si se proporciona
+        if (idProfesional && isNaN(idProfesional)) {
+            return res.status(400).json({ error: 'ID de profesional inválido' });
+        }
+        
+        const estadisticas = await turnosAdmModel.getEstadisticasEstados(idProfesional || null);
+        res.status(200).json(estadisticas);
+    } catch (error) {
+        console.error('Error al obtener estadísticas de estados:', error);
+        res.status(500).json({ error: 'Error al obtener estadísticas de estados' });
+    }
+};
+
+// Obtener estados disponibles (útil para selects en el frontend)
+const getEstadosDisponibles = async (req, res) => {
+    try {
+        const estados = [
+            { valor: 'Solicitado', etiqueta: 'Solicitado', descripcion: 'Turno solicitado por el cliente' },
+            { valor: 'Confirmado', etiqueta: 'Confirmado', descripcion: 'Turno confirmado por el profesional' },
+            { valor: 'Cancelado', etiqueta: 'Cancelado', descripcion: 'Turno cancelado' },
+            { valor: 'Realizado', etiqueta: 'Realizado', descripcion: 'Turno completado exitosamente' }
+        ];
+        
+        res.status(200).json(estados);
+    } catch (error) {
+        console.error('Error al obtener estados disponibles:', error);
+        res.status(500).json({ error: 'Error al obtener estados disponibles' });
+    }
+};
+
 /////comentario
 module.exports = {
     getTurnosPorFecha,
@@ -224,5 +347,11 @@ module.exports = {
     getHistorialClienteProfesional,
     getComentarioTurno,
     actualizarComentarioTurno,
-    getTurnosConComentariosPorProfesional 
+    getTurnosConComentariosPorProfesional,
+    getTodosLosTurnos,
+    getTurnosPorEstado,
+    getTurnosPorProfesionalYEstado,
+    cambiarEstadoTurno,
+    getEstadisticasEstados,
+    getEstadosDisponibles 
 };

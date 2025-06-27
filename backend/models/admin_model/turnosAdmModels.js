@@ -350,6 +350,195 @@ const getTurnosConComentariosPorProfesional = async (idProfesional) => {
     }
 };
 
+// Obtener todos los turnos con todos los estados (para historial completo)
+const getTodosLosTurnos = async () => {
+    try {
+        console.log("Obteniendo todos los turnos con todos los estados...");
+        const [filas] = await db.execute(`
+            SELECT 
+                turno.id_turno AS id,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                profesional.nombre AS profesional,
+                cliente.nombre AS cliente,
+                servicio.nombre AS servicio,
+                servicio.precio AS precio,
+                turno.estado AS estado,
+                turno.comentarios,
+                DATE_FORMAT(turno.fecha_solicitud, '%Y-%m-%d %H:%i') AS fecha_solicitud
+            FROM turno
+            JOIN profesional ON turno.id_profesional = profesional.id_profesional
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            ORDER BY turno.fecha_hora DESC;
+        `);
+        console.log("Total de turnos obtenidos:", filas.length);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener todos los turnos:', error);
+        throw error;
+    }
+};
+
+// Obtener turnos por estado específico
+const getTurnosPorEstado = async (estado) => {
+    try {
+        console.log(`Obteniendo turnos con estado: ${estado}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                turno.id_turno AS id,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                profesional.nombre AS profesional,
+                cliente.nombre AS cliente,
+                servicio.nombre AS servicio,
+                servicio.precio AS precio,
+                turno.estado AS estado,
+                turno.comentarios,
+                DATE_FORMAT(turno.fecha_solicitud, '%Y-%m-%d %H:%i') AS fecha_solicitud
+            FROM turno
+            JOIN profesional ON turno.id_profesional = profesional.id_profesional
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            WHERE turno.estado = ?
+            ORDER BY turno.fecha_hora DESC;
+        `, [estado]);
+        console.log(`Turnos encontrados con estado ${estado}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error(`Error al obtener turnos con estado ${estado}:`, error);
+        throw error;
+    }
+};
+
+// Obtener turnos por profesional con filtro de estado
+const getTurnosPorProfesionalYEstado = async (idProfesional, estado = null) => {
+    try {
+        let query = `
+            SELECT 
+                turno.id_turno AS id,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                cliente.nombre AS cliente,
+                cliente.apellido AS cliente_apellido,
+                servicio.nombre AS servicio,
+                servicio.precio AS precio,
+                turno.estado AS estado,
+                turno.comentarios,
+                DATE_FORMAT(turno.fecha_solicitud, '%Y-%m-%d %H:%i') AS fecha_solicitud
+            FROM turno
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            WHERE turno.id_profesional = ?
+        `;
+        
+        let parametros = [idProfesional];
+        
+        if (estado) {
+            query += ` AND turno.estado = ?`;
+            parametros.push(estado);
+        }
+        
+        query += ` ORDER BY turno.fecha_hora DESC`;
+        
+        console.log(`Obteniendo turnos para profesional ${idProfesional}${estado ? ` con estado ${estado}` : ''}`);
+        const [filas] = await db.execute(query, parametros);
+        
+        console.log(`Turnos encontrados:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener turnos por profesional y estado:', error);
+        throw error;
+    }
+};
+
+// Cambiar estado de turno con validación
+const cambiarEstadoTurno = async (idTurno, nuevoEstado, comentarioActualizacion = null) => {
+    try {
+        console.log(`Cambiando estado del turno ${idTurno} a ${nuevoEstado}`);
+        
+        // Validar que el estado sea válido
+        const estadosValidos = ['Solicitado', 'Confirmado', 'Cancelado', 'Realizado'];
+        if (!estadosValidos.includes(nuevoEstado)) {
+            throw new Error(`Estado no válido: ${nuevoEstado}. Estados válidos: ${estadosValidos.join(', ')}`);
+        }
+        
+        // Obtener el estado actual
+        const [turnoActual] = await db.execute(
+            'SELECT estado, comentarios FROM turno WHERE id_turno = ?',
+            [idTurno]
+        );
+        
+        if (turnoActual.length === 0) {
+            throw new Error(`No se encontró el turno con ID ${idTurno}`);
+        }
+        
+        const estadoAnterior = turnoActual[0].estado;
+        const comentariosActuales = turnoActual[0].comentarios || '';
+        
+        // Construir nuevos comentarios si se proporciona una actualización
+        let nuevosComentarios = comentariosActuales;
+        if (comentarioActualizacion) {
+            const timestamp = new Date().toLocaleString('es-AR');
+            const comentarioEstado = `[${timestamp}] Estado cambiado de "${estadoAnterior}" a "${nuevoEstado}": ${comentarioActualizacion}`;
+            nuevosComentarios = comentariosActuales ? `${comentariosActuales}\n\n${comentarioEstado}` : comentarioEstado;
+        }
+        
+        // Actualizar el estado y comentarios
+        const [resultado] = await db.execute(
+            'UPDATE turno SET estado = ?, comentarios = ? WHERE id_turno = ?',
+            [nuevoEstado, nuevosComentarios, idTurno]
+        );
+        
+        console.log(`Estado actualizado exitosamente de "${estadoAnterior}" a "${nuevoEstado}"`);
+        
+        if (resultado.affectedRows === 0) {
+            throw new Error(`No se pudo actualizar el turno con ID ${idTurno}`);
+        }
+        
+        return {
+            ...resultado,
+            estadoAnterior,
+            nuevoEstado,
+            comentariosActualizados: nuevosComentarios
+        };
+    } catch (error) {
+        console.error('Error al cambiar estado del turno:', error);
+        throw error;
+    }
+};
+
+// Obtener estadísticas de estados de turnos
+const getEstadisticasEstados = async (idProfesional = null) => {
+    try {
+        let query = `
+            SELECT 
+                estado,
+                COUNT(*) as cantidad,
+                ROUND((COUNT(*) * 100.0 / SUM(COUNT(*)) OVER()), 2) as porcentaje
+            FROM turno
+        `;
+        
+        let parametros = [];
+        
+        if (idProfesional) {
+            query += ` WHERE id_profesional = ?`;
+            parametros.push(idProfesional);
+        }
+        
+        query += ` GROUP BY estado ORDER BY cantidad DESC`;
+        
+        console.log(`Obteniendo estadísticas de estados${idProfesional ? ` para profesional ${idProfesional}` : ''}`);
+        const [filas] = await db.execute(query, parametros);
+        
+        console.log('Estadísticas obtenidas:', filas);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener estadísticas de estados:', error);
+        throw error;
+    }
+};
+
 // Exportar la nueva función
 module.exports = {
     getTurnosPorFecha,
@@ -362,5 +551,10 @@ module.exports = {
     getHistorialClienteProfesional,    // NUEVA
     getComentarioTurno,
     actualizarComentarioTurno,
-    getTurnosConComentariosPorProfesional
+    getTurnosConComentariosPorProfesional,
+    getTodosLosTurnos,
+    getTurnosPorEstado,
+    getTurnosPorProfesionalYEstado,
+    cambiarEstadoTurno,
+    getEstadisticasEstados
 };
