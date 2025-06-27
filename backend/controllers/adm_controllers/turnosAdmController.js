@@ -153,6 +153,66 @@ const getHistorialClienteProfesional = async (req, res) => {
         res.status(500).json({ error: 'Error al obtener el historial' });
     }
 };
+
+const getComentarioTurno = async (req, res) => {
+    try {
+        const { idTurno } = req.params;
+
+        if (!idTurno || isNaN(idTurno)) {
+            return res.status(400).json({ error: 'ID de turno inválido' });
+        }
+
+        const comentario = await turnosAdmModel.getComentarioTurno(idTurno);
+        res.status(200).json(comentario);
+    } catch (error) {
+        console.error('Error al obtener comentario del turno:', error);
+        res.status(500).json({ error: 'Error al obtener el comentario del turno' });
+    }
+};
+
+// Actualizar comentario de un turno específico
+const actualizarComentarioTurno = async (req, res) => {
+    try {
+        const { idTurno } = req.params;
+        const { comentarios } = req.body;
+
+        if (!idTurno || isNaN(idTurno)) {
+            return res.status(400).json({ error: 'ID de turno inválido' });
+        }
+
+        if (comentarios === undefined || comentarios === null) {
+            return res.status(400).json({ error: 'El campo comentarios es requerido' });
+        }
+
+        const resultado = await turnosAdmModel.actualizarComentarioTurno(idTurno, comentarios);
+        
+        res.status(200).json({ 
+            mensaje: 'Comentario actualizado correctamente',
+            turnoId: idTurno
+        });
+    } catch (error) {
+        console.error('Error al actualizar comentario del turno:', error);
+        res.status(500).json({ error: 'Error al actualizar el comentario del turno' });
+    }
+};
+
+// Obtener todos los turnos con comentarios de un profesional específico
+const getTurnosConComentariosPorProfesional = async (req, res) => {
+    try {
+        const { idProfesional } = req.params;
+
+        if (!idProfesional || isNaN(idProfesional)) {
+            return res.status(400).json({ error: 'ID de profesional inválido' });
+        }
+
+        const turnos = await turnosAdmModel.getTurnosConComentariosPorProfesional(idProfesional);
+        res.status(200).json(turnos);
+    } catch (error) {
+        console.error('Error al obtener turnos con comentarios del profesional:', error);
+        res.status(500).json({ error: 'Error al obtener los turnos con comentarios' });
+    }
+};
+
 /////comentario
 module.exports = {
     getTurnosPorFecha,
@@ -161,5 +221,8 @@ module.exports = {
     actualizarEstadoTurno,
     actualizarTurno,
         getClientesPorProfesional,        // NUEVA
-    getHistorialClienteProfesional 
+    getHistorialClienteProfesional,
+    getComentarioTurno,
+    actualizarComentarioTurno,
+    getTurnosConComentariosPorProfesional 
 };

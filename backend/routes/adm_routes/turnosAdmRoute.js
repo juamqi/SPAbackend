@@ -10,6 +10,9 @@ router.post('/', turnosAdmController.crearTurno);
 router.get('/', turnosAdmController.getAdmTurnos);
 router.put('/estado/:id', turnosAdmController.actualizarEstadoTurno);
 router.get('/por-fecha', turnosAdmController.getTurnosPorFecha);
+router.get('/comentario/:idTurno', turnosAdmController.getComentarioTurno);
+router.put('/comentario/:idTurno', turnosAdmController.actualizarComentarioTurno);
+router.get('/comentarios/profesional/:idProfesional', turnosAdmController.getTurnosConComentariosPorProfesional);
 
 // Nueva ruta para actualizar un turno
 router.put('/:id', turnosAdmController.actualizarTurno);

@@ -258,6 +258,98 @@ const getHistorialClienteProfesional = async (idCliente, idProfesional) => {
         throw error;
     }
 };
+
+// Obtener comentario de un turno específico
+const getComentarioTurno = async (idTurno) => {
+    try {
+        console.log(`Obteniendo comentario para turno ID: ${idTurno}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                turno.id_turno AS id,
+                turno.comentarios,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                cliente.nombre AS cliente_nombre,
+                cliente.apellido AS cliente_apellido,
+                servicio.nombre AS servicio_nombre,
+                turno.estado
+            FROM turno
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            WHERE turno.id_turno = ?
+        `, [idTurno]);
+        
+        if (filas.length === 0) {
+            throw new Error(`No se encontró el turno con ID ${idTurno}`);
+        }
+        
+        console.log(`Comentario obtenido para turno ${idTurno}`);
+        return filas[0];
+    } catch (error) {
+        console.error('Error al obtener comentario del turno:', error);
+        throw error;
+    }
+};
+
+// Actualizar comentario de un turno específico
+const actualizarComentarioTurno = async (idTurno, comentarios) => {
+    try {
+        console.log(`Actualizando comentario para turno ${idTurno}`);
+        
+        const [resultado] = await db.execute(
+            'UPDATE turno SET comentarios = ? WHERE id_turno = ?',
+            [comentarios, idTurno]
+        );
+        
+        console.log('Resultado de la actualización de comentario:', resultado);
+        
+        if (resultado.affectedRows === 0) {
+            throw new Error(`No se encontró el turno con id ${idTurno}`);
+        }
+        
+        return resultado;
+    } catch (error) {
+        console.error('Error al actualizar comentario del turno en BD:', error);
+        throw error;
+    }
+};
+
+// Obtener todos los turnos con comentarios de un profesional específico
+const getTurnosConComentariosPorProfesional = async (idProfesional) => {
+    try {
+        console.log(`Obteniendo turnos con comentarios para profesional ID: ${idProfesional}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                turno.id_turno AS id,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                cliente.nombre AS cliente_nombre,
+                cliente.apellido AS cliente_apellido,
+                cliente.id_cliente,
+                servicio.nombre AS servicio_nombre,
+                servicio.precio AS precio,
+                turno.estado,
+                turno.comentarios,
+                CASE 
+                    WHEN turno.comentarios IS NOT NULL AND turno.comentarios != '' 
+                    THEN 1 
+                    ELSE 0 
+                END AS tiene_comentarios
+            FROM turno
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            WHERE turno.id_profesional = ?
+            ORDER BY turno.fecha_hora DESC
+        `, [idProfesional]);
+        
+        console.log(`Turnos con comentarios encontrados para profesional ${idProfesional}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener turnos con comentarios del profesional:', error);
+        throw error;
+    }
+};
+
 // Exportar la nueva función
 module.exports = {
     getTurnosPorFecha,
@@ -267,5 +359,8 @@ module.exports = {
     actualizarEstadoTurno,
     actualizarTurno,
     getClientesPorProfesional,        // NUEVA
-    getHistorialClienteProfesional    // NUEVA
+    getHistorialClienteProfesional,    // NUEVA
+    getComentarioTurno,
+    actualizarComentarioTurno,
+    getTurnosConComentariosPorProfesional
 };
