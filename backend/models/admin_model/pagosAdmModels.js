@@ -120,7 +120,7 @@ const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
             WHERE carr.estado = 'Pagado'
             AND DATE carr.fecha_pago BETWEEN ? AND ?
             ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
-        `, [fechaInicio, fechaFin]);
+        `, [fechaInicio, fechaFin]);//asdadasdasd
         console.log(`Pagos obtenidos entre ${fechaInicio} y ${fechaFin}:`, filas.length);
         return filas;
     } catch (error) {
