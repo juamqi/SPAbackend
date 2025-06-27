@@ -20,8 +20,7 @@ const getPagos = async () => {
             JOIN cliente c ON t.id_cliente = c.id_cliente
             JOIN profesional p ON t.id_profesional = p.id_profesional
             JOIN servicio s ON t.id_servicio = s.id_servicio
-            WHERE carr.estado = 'Completado'
-            AND t.estado = 'Realizado'
+            WHERE carr.estado = 'Pagado'
             ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
         `);
         console.log("Pagos obtenidos:", filas.length);
