@@ -12,10 +12,10 @@ const getPagos = async () => {
                 s.nombre AS servicio,
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
-                -- Precio pagado según lógica de comisiones
+                -- Precio pagado según lógica de descuento por reserva anticipada
                 CASE 
-                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85  -- Tarjeta: precio - 15%
-                    ELSE s.precio  -- Efectivo: precio completo
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85  -- Reserva 2+ días antes: precio - 15%
+                    ELSE s.precio  -- Reserva último momento: precio completo
                 END AS precio_pagado
             FROM turno t
             JOIN carritos carr ON t.id_carrito = carr.id
@@ -45,7 +45,7 @@ const getPagosPorProfesional = async (idProfesional) => {
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 CASE 
-                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85
                     ELSE s.precio
                 END AS precio_pagado
             FROM turno t
@@ -77,7 +77,7 @@ const getPagosPorServicio = async (idServicio) => {
                 carr.fecha_pago,
                 s.nombre AS servicio,
                 CASE 
-                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85
                     ELSE s.precio
                 END AS precio_pagado
             FROM turno t
