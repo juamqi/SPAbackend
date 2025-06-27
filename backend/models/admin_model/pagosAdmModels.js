@@ -31,6 +31,103 @@ const getPagos = async () => {
     }
 };
 
+const getPagosPorProfesional = async (idProfesional) => {
+    try {
+        console.log(`Ejecutando consulta SQL para obtener pagos del profesional ID: ${idProfesional}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                t.id_turno AS id,
+                CONCAT(c.nombre, ' ', c.apellido) AS cliente,
+                CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
+                carr.fecha_pago,
+                CASE 
+                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    ELSE s.precio
+                END AS precio_pagado
+            FROM turno t
+            JOIN carritos carr ON t.id_carrito = carr.id
+            JOIN cliente c ON t.id_cliente = c.id_cliente
+            JOIN profesional p ON t.id_profesional = p.id_profesional
+            JOIN servicio s ON t.id_servicio = s.id_servicio
+            WHERE carr.estado = 'Pagado'
+            AND p.id_profesional = ?
+            ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
+        `, [idProfesional]);
+        console.log(`Pagos obtenidos para profesional ${idProfesional}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error(`Error al obtener los pagos del profesional ${idProfesional}:`, error);
+        throw error;
+    }
+};
+
+const getPagosPorServicio = async (idServicio) => {
+    try {
+        console.log(`Ejecutando consulta SQL para obtener pagos del servicio ID: ${idServicio}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                t.id_turno AS id,
+                CONCAT(c.nombre, ' ', c.apellido) AS cliente,
+                CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
+                carr.fecha_pago,
+                s.nombre AS servicio,
+                CASE 
+                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    ELSE s.precio
+                END AS precio_pagado
+            FROM turno t
+            JOIN carritos carr ON t.id_carrito = carr.id
+            JOIN cliente c ON t.id_cliente = c.id_cliente
+            JOIN profesional p ON t.id_profesional = p.id_profesional
+            JOIN servicio s ON t.id_servicio = s.id_servicio
+            WHERE carr.estado = 'Pagado'
+            AND s.id_servicio = ?
+            ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
+        `, [idServicio]);
+        console.log(`Pagos obtenidos para servicio ${idServicio}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error(`Error al obtener los pagos del servicio ${idServicio}:`, error);
+        throw error;
+    }
+};
+
+const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
+    try {
+        console.log(`Ejecutando consulta SQL para obtener pagos entre ${fechaInicio} y ${fechaFin}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                t.id_turno AS id,
+                CONCAT(c.nombre, ' ', c.apellido) AS cliente,
+                CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
+                carr.fecha_pago,
+                CASE 
+                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    ELSE s.precio
+                END AS precio_pagado
+            FROM turno t
+            JOIN carritos carr ON t.id_carrito = carr.id
+            JOIN cliente c ON t.id_cliente = c.id_cliente
+            JOIN profesional p ON t.id_profesional = p.id_profesional
+            JOIN servicio s ON t.id_servicio = s.id_servicio
+            WHERE carr.estado = 'Pagado'
+            AND carr.fecha_pago BETWEEN ? AND ?
+            ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
+        `, [fechaInicio, fechaFin]);
+        console.log(`Pagos obtenidos entre ${fechaInicio} y ${fechaFin}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error(`Error al obtener los pagos entre ${fechaInicio} y ${fechaFin}:`, error);
+        throw error;
+    }
+};
+
 module.exports = {
-    getPagos
+    getPagos,
+    getPagosPorProfesional,
+    getPagosPorServicio,
+    getPagosPorRangoFechas
 };
