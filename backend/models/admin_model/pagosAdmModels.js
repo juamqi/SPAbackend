@@ -1,3 +1,4 @@
+// En pagosAdmModels.js
 const db = require('../../db');
 
 const getPagos = async () => {
@@ -8,6 +9,7 @@ const getPagos = async () => {
                 t.id_turno AS id,
                 CONCAT(c.nombre, ' ', c.apellido) AS cliente,
                 CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                s.nombre AS servicio,
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 -- Precio pagado según lógica de comisiones
@@ -39,6 +41,7 @@ const getPagosPorProfesional = async (idProfesional) => {
                 t.id_turno AS id,
                 CONCAT(c.nombre, ' ', c.apellido) AS cliente,
                 CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                s.nombre AS servicio,
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 CASE 
@@ -102,6 +105,7 @@ const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
                 t.id_turno AS id,
                 CONCAT(c.nombre, ' ', c.apellido) AS cliente,
                 CONCAT(p.nombre, ' ', p.apellido) AS profesional,
+                s.nombre AS servicio,
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 CASE 
