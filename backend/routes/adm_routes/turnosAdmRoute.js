@@ -3,7 +3,8 @@ const express = require('express');
 const db = require('../../db');
 const router = express.Router();
 const turnosAdmController = require('../../controllers/adm_controllers/turnosAdmController');
-
+router.get('/clientes/:idProfesional', turnosAdmController.getClientesPorProfesional);
+router.get('/historial/:idCliente/:idProfesional', turnosAdmController.getHistorialClienteProfesional);
 router.post('/', turnosAdmController.crearTurno);
 // Rutas existentes
 router.get('/', turnosAdmController.getAdmTurnos);

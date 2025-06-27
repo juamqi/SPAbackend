@@ -118,12 +118,48 @@ const getTurnosPorFecha = async (req, res) => {
         res.status(500).json({ error: 'Error al obtener los turnos' });
     }
 };
+// Agregar estas funciones antes del module.exports
 
+// Obtener clientes que tienen turnos con un profesional específico
+const getClientesPorProfesional = async (req, res) => {
+    try {
+        const { idProfesional } = req.params;
 
+        if (!idProfesional || isNaN(idProfesional)) {
+            return res.status(400).json({ error: 'ID de profesional inválido' });
+        }
+
+        const clientes = await turnosAdmModel.getClientesPorProfesional(idProfesional);
+        res.status(200).json(clientes);
+    } catch (error) {
+        console.error('Error al obtener clientes por profesional:', error);
+        res.status(500).json({ error: 'Error al obtener los clientes del profesional' });
+    }
+};
+
+// Obtener historial de turnos entre un cliente y un profesional
+const getHistorialClienteProfesional = async (req, res) => {
+    try {
+        const { idCliente, idProfesional } = req.params;
+
+        if (!idCliente || isNaN(idCliente) || !idProfesional || isNaN(idProfesional)) {
+            return res.status(400).json({ error: 'IDs de cliente y profesional son requeridos y deben ser válidos' });
+        }
+
+        const historial = await turnosAdmModel.getHistorialClienteProfesional(idCliente, idProfesional);
+        res.status(200).json(historial);
+    } catch (error) {
+        console.error('Error al obtener historial cliente-profesional:', error);
+        res.status(500).json({ error: 'Error al obtener el historial' });
+    }
+};
+/////comentario
 module.exports = {
     getTurnosPorFecha,
     crearTurno,
     getAdmTurnos,
     actualizarEstadoTurno,
-    actualizarTurno
+    actualizarTurno,
+        getClientesPorProfesional,        // NUEVA
+    getHistorialClienteProfesional 
 };

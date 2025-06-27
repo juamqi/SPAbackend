@@ -201,6 +201,63 @@ const actualizarTurnoConIds = async (idTurno, datosTurno) => {
         throw error;
     }
 };
+// Agregar estas funciones al final del archivo, antes del module.exports
+
+// Obtener clientes únicos que tienen turnos con un profesional específico
+const getClientesPorProfesional = async (idProfesional) => {
+    try {
+        console.log(`Obteniendo clientes para profesional ID: ${idProfesional}`);
+        const [filas] = await db.execute(`
+            SELECT DISTINCT
+                cliente.id_cliente AS id,
+                cliente.nombre,
+                cliente.apellido,
+                cliente.email,
+                cliente.telefono,
+                cliente.direccion,
+                cliente.fecha_registro
+            FROM turno
+            JOIN cliente ON turno.id_cliente = cliente.id_cliente
+            WHERE turno.id_profesional = ?
+            AND turno.estado IN ('Solicitado', 'Cancelado', 'Realizado')
+            ORDER BY cliente.nombre ASC, cliente.apellido ASC;
+        `, [idProfesional]);
+        
+        console.log(`Clientes encontrados para profesional ${idProfesional}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener clientes por profesional:', error);
+        throw error;
+    }
+};
+
+// Obtener historial de turnos entre un cliente específico y un profesional específico
+const getHistorialClienteProfesional = async (idCliente, idProfesional) => {
+    try {
+        console.log(`Obteniendo historial - Cliente: ${idCliente}, Profesional: ${idProfesional}`);
+        const [filas] = await db.execute(`
+            SELECT 
+                turno.id_turno AS id,
+                DATE_FORMAT(turno.fecha_hora, '%Y-%m-%d') AS fecha,
+                TIME_FORMAT(turno.fecha_hora, '%H:%i') AS hora,
+                servicio.nombre AS servicio,
+                servicio.precio AS precio,
+                turno.estado AS estado,
+                turno.comentarios
+            FROM turno
+            JOIN servicio ON turno.id_servicio = servicio.id_servicio
+            WHERE turno.id_cliente = ?
+            AND turno.id_profesional = ?
+            ORDER BY turno.fecha_hora DESC;
+        `, [idCliente, idProfesional]);
+        
+        console.log(`Turnos encontrados para cliente ${idCliente} con profesional ${idProfesional}:`, filas.length);
+        return filas;
+    } catch (error) {
+        console.error('Error al obtener historial cliente-profesional:', error);
+        throw error;
+    }
+};
 // Exportar la nueva función
 module.exports = {
     getTurnosPorFecha,
@@ -208,5 +265,7 @@ module.exports = {
     crearNuevoTurno,
     getTurnos,
     actualizarEstadoTurno,
-    actualizarTurno
+    actualizarTurno,
+    getClientesPorProfesional,        // NUEVA
+    getHistorialClienteProfesional    // NUEVA
 };
