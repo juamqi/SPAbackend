@@ -87,8 +87,29 @@ const getServiciosPorTipo = async (req, res) => {
       res.status(500).json({ error: 'Error al obtener los servicios' });
     }
   };
+  const getServicioPorProfesional = async (req, res) => {
+    try {
+        const { id_profesional } = req.params;
+
+        if (!id_profesional || isNaN(id_profesional)) {
+            return res.status(400).json({ error: 'ID de profesional inválido' });
+        }
+
+        const servicio = await serviciosAdmModel.getServicioPorProfesional(id_profesional);
+        
+        if (servicio) {
+            res.status(200).json(servicio);
+        } else {
+            res.status(404).json({ error: 'No se encontró servicio para este profesional' });
+        }
+    } catch (error) {
+        console.error('Error al obtener el servicio del profesional:', error);
+        res.status(500).json({ error: 'Error al obtener el servicio del profesional' });
+    }
+};
 
 module.exports = {
+    getServicioPorProfesional,
     getServiciosPorTipo,
     getAdmServicios,
     getServiciosPorCategoria,

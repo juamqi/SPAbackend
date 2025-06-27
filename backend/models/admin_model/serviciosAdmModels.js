@@ -158,8 +158,45 @@ const getServiciosPorTipo = async (tipo) => {
       throw error;
     }
   };
+  // Agregar esta función al final del archivo, antes del module.exports
+const getServicioPorProfesional = async (id_profesional) => {
+    try {
+        const [filas] = await db.execute(`
+            SELECT 
+                servicio.id_servicio AS id,
+                servicio.nombre AS nombre,
+                categoria_servicio.nombre AS categoria,
+                servicio.tipo AS tipo,
+                servicio.precio AS precio,
+                servicio.descripcion AS descripcion
+            FROM servicio
+            JOIN profesional ON servicio.id_servicio = profesional.id_servicio
+            JOIN categoria_servicio ON servicio.id_categoria = categoria_servicio.id_categoria
+            WHERE profesional.id_profesional = ? AND servicio.activo = 1
+        `, [id_profesional]);
+        
+        console.log("Servicio obtenido para profesional:", id_profesional, filas);
+        
+        if (filas.length === 0) {
+            return null;
+        }
+        
+        return {
+            id: filas[0].id,
+            nombre: filas[0].nombre,
+            categoria: filas[0].categoria,
+            tipo: filas[0].tipo,
+            precio: filas[0].precio,
+            descripcion: filas[0].descripcion,
+        };
+    } catch (error) {
+        console.error('Error al obtener el servicio del profesional:', error);
+        throw error;
+    }
+};
 
 module.exports = {
+    getServicioPorProfesional,
     getServiciosPorTipo,
     getServicios,
     actualizarServicio,
