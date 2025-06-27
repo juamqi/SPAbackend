@@ -15,7 +15,7 @@ const serviciosAdmRoutes = require('./routes/adm_routes/serviciosAdmRoutes.js');
 const profesionalesAdmRoutes = require('./routes/adm_routes/profesionalesRoutes.js');
 const categoriaAdmRoutes = require('./routes/adm_routes/categoriaAdmRoutes.js');
 const clienteRoutes = require('./routes/adm_routes/clienteAdmRoutes.js');
-const pagosAdmRoutes = require('./routes/adm_routes/pagosAdmRoute.js'); // 👈 NUEVA LÍNEA
+const pagosAdmRoutes = require('./routes/adm_routes/pagosAdmRoutes.js'); // 👈 NUEVA LÍNEA
 
 //email
 const emailRoutes = require('./routes/email/emailRoutes.js');
