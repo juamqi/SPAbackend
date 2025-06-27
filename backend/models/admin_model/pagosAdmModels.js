@@ -14,7 +14,7 @@ const getPagos = async () => {
                 carr.fecha_pago,
                 -- Precio pagado según lógica de descuento por reserva anticipada
                 CASE 
-                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85  -- Reserva 2+ días antes: precio - 15%
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) > 2 THEN s.precio * 0.85  -- Reserva 2+ días antes: precio - 15%
                     ELSE s.precio  -- Reserva último momento: precio completo
                 END AS precio_pagado
             FROM turno t
@@ -45,7 +45,7 @@ const getPagosPorProfesional = async (idProfesional) => {
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 CASE 
-                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) > 2 THEN s.precio * 0.85
                     ELSE s.precio
                 END AS precio_pagado
             FROM turno t
@@ -77,7 +77,7 @@ const getPagosPorServicio = async (idServicio) => {
                 carr.fecha_pago,
                 s.nombre AS servicio,
                 CASE 
-                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) >= 2 THEN s.precio * 0.85
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) > 2 THEN s.precio * 0.85
                     ELSE s.precio
                 END AS precio_pagado
             FROM turno t
@@ -109,7 +109,7 @@ const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
                 DATE_FORMAT(t.fecha_hora, '%Y-%m-%d') AS fecha_turno,
                 carr.fecha_pago,
                 CASE 
-                    WHEN carr.total > carr.subtotal THEN s.precio * 0.85
+                    WHEN DATEDIFF(t.fecha_hora, carr.fecha_pago) > 2 THEN s.precio * 0.85
                     ELSE s.precio
                 END AS precio_pagado
             FROM turno t
@@ -118,7 +118,7 @@ const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
             JOIN profesional p ON t.id_profesional = p.id_profesional
             JOIN servicio s ON t.id_servicio = s.id_servicio
             WHERE carr.estado = 'Pagado'
-            AND carr.fecha_pago BETWEEN ? AND ?
+            AND DATE(carr.fecha_pago) BETWEEN ? AND ?
             ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
         `, [fechaInicio, fechaFin]);
         console.log(`Pagos obtenidos entre ${fechaInicio} y ${fechaFin}:`, filas.length);
