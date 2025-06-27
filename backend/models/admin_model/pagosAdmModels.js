@@ -118,7 +118,7 @@ const getPagosPorRangoFechas = async (fechaInicio, fechaFin) => {
             JOIN profesional p ON t.id_profesional = p.id_profesional
             JOIN servicio s ON t.id_servicio = s.id_servicio
             WHERE carr.estado = 'Pagado'
-            AND carr.fecha_pago BETWEEN ? AND ?
+            AND DATE(carr.fecha_pago) BETWEEN ? AND ?
             ORDER BY carr.fecha_pago DESC, t.fecha_hora DESC;
         `, [fechaInicio, fechaFin]);
         console.log(`Pagos obtenidos entre ${fechaInicio} y ${fechaFin}:`, filas.length);
